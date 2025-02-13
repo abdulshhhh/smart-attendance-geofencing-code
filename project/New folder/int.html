@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subject and Selection</title>
+    <link rel="stylesheet" href="intt.css">
+
+    <style>
+        /* Background Styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: url('St.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: white;
+        }
+
+        /* Overlay for better readability */
+        .overlay {
+            background: rgba(0, 0, 0, 0.6); /* Dark overlay */
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        /* Header Section */
+        .header {
+            background: rgba(74,74,74,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* Selection Form */
+        .selection-container {
+            background: rgba(74, 74, 74, 0.15);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        select, button {
+            padding: 10px;
+            margin: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: none;
+        }
+
+        select {
+            width: 250px;
+        }
+
+        button {
+            background-color: #15075e;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #e68900;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="overlay">
+        <!-- Header -->
+        <div class="header">
+            <img src="C:\Users\Ajaykumar\Downloads\logo-removebg-preview (1).png" width="100px" alt="College Logo">
+            <h2 style="color: rgb(184, 21, 21);">St. JOSEPH'S COLLEGE OF ENGINEERING</h2>
+            <h3 style="color: rgb(203, 28, 185);">(An Autonomous Institution)</h3>
+            <h2 style="color: rgb(227, 161, 7);">St. JOSEPH'S GROUP OF INSTITUTIONS</h2>
+            <h3 style="color: rgba(241, 241, 249, 0.837);">OMR, CHENNAI-119</h3>
+        </div>
+
+        <!-- Selection Form -->
+        <div class="selection-container">
+            <h1>Semester and Subject Selection</h1>
+
+            <!-- Semester Dropdown -->
+            <label for="semester"></label>
+            <select id="semester" onchange="updateSubjects()">
+                <option value="">-- Select Semester --</option>
+                <option value="1">First Semester</option>
+                <option value="2">Second Semester</option>
+                <option value="3">Third Semester</option>
+                <option value="4">Fourth Semester</option>
+                <option value="5">Fifth Semester</option>
+                <option value="6">Sixth Semester</option>
+                <option value="7">Seventh Semester</option>
+                <option value="8">Eighth Semester</option>
+            </select>
+
+            <!-- Subject Dropdown -->
+            <label for="subject"></label>
+            <select id="subject">
+                <option value="">-- Select Subject --</option>
+            </select>
+
+            <button onclick="submitChoice()">Submit</button>
+        </div>
+    </div>
+
+    <script>
+        // Subjects for each semester
+        const subjects = {
+            1: ["Physics", "Chemistry", "Engineering Maths 1", "Engineering Graphics", "English", "Tamil"],
+            2: ["C Programming", "Physics for Information Science", "Technical English", "Tamils and Heritage", "Environmental Science and Engineering", "Engineering Maths 2"],
+            3: ["Java Programming", "Data Structure", "Digital Principle", "Data Exploratory", "Agile Software", "Professional English"],
+            4: ["Operating System", "Discrete Mathematics", "Database Design and Management", "Fundamental of Data Science and Analytics", "Computer Networks", "Design and Analysis of Algorithm"]
+        };
+
+        // Update the subject dropdown based on semester selection
+        function updateSubjects() {
+            const semesterSelect = document.getElementById("semester").value;
+            const subjectSelect = document.getElementById("subject");
+            
+            // Clear previous options
+            subjectSelect.innerHTML = '<option value="">-- Select Subject --</option>';
+
+            // Get the subjects for the selected semester
+            if (semesterSelect && subjects[semesterSelect]) {
+                subjects[semesterSelect].forEach(subject => {
+                    const option = document.createElement("option");
+                    option.value = subject;
+                    option.text = subject;
+                    subjectSelect.appendChild(option);
+                });
+            }
+        }
+
+        // Function to handle form submission
+        function submitChoice() {
+            const semester = document.getElementById("semester").value;
+            const subject = document.getElementById("subject").value;
+
+            if (semester && subject) {
+                const pageMap = {
+                    "Data Structure": "pie3data.html",
+                    "Chemistry": "pie1c.html",
+                    "Physics": "pie1p.html",
+                    "Physics for Information Science": "pie2ph.html",
+                    "Engineering Graphics": "pie1eg.html",
+                    "Engineering Maths 1": "pie1m.html",
+                    "Engineering Maths 2": "pie2m.html",
+                    "English": "pie1e.html",
+                    "Tamil": "piet.html",
+                    "C Programming": "pie2cp.html",
+                    "Technical English": "pie2te.html",
+                    "Environmental Science and Engineering": "pie2evs.html",
+                    "Tamils and Heritage": "pie2t.html",
+                    "Java Programming": "pie3j.html",
+                    "Digital Principle": "pie3ds.html",
+                    "Agile Software": "pie3ag.html",
+                    "Professional English": "pie3pe.html",
+                    "Data Exploratory": "pie3dev.html",
+                    "Operating System": "os.html",
+                    "Discrete Mathematics": "dismat.html",
+                    "Computer Networks": "computer.html",
+                    "Database Design and Management": "dbms.html",
+                    "Design and Analysis of Algorithm": "design.html",
+                    "Fundamental of Data Science and Analytics": "datascience.html"
+                };
+
+                if (pageMap[subject]) {
+                    window.location.href = pageMap[subject];
+                } else {
+                    alert('You selected: Semester ${semester}, Subject: ${subject}');
+                }
+            } else {
+                alert("Please select both a semester and a subject.");
+            }
+        }
+    </script>
+
+</body>
+</html>

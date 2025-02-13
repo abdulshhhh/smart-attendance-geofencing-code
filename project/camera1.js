@@ -9,7 +9,7 @@ async function startCamera() {
 
         // Navigate to default.html after 1 second
         setTimeout(() => {
-            window.location.href = 'default.html';
+            window.location.href = 'camera1.html';
         }, 1000);
 
     } catch (err) {
