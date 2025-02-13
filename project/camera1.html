@@ -4,53 +4,100 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live Camera with Motion Detection</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: #f4f4f4;
+            font-family: 'Poppins', sans-serif;
+           
+            background: url('St.jpg');
             margin: 0;
-            padding: 20px;
+            padding: 0px;
+            text-align: center;
+            animation: fadeIn 1s ease-in-out;
         }
-
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        h1 {
+            color: #fff;
+            font-size: 2rem;
+            animation: slideIn 1s ease-in-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
         video {
             width: 100%;
             max-width: 600px;
-            border: 1px solid #ccc;
+            border: 5px solid #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 1.5s ease-in-out;
         }
-
+        .buttons {
+            margin-top: 20px;
+        }
         button {
-            margin-top: 10px;
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        button:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-
-        #status {
-            margin-top: 10px;
+            padding: 12px 20px;
             font-size: 18px;
-            color: green;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin: 10px;
+            transform: scale(1);
+            transition: transform 0.3s;
+        }
+        button:hover {
+            transform: scale(1.1);
+        }
+        #startCamera {
+            background: #28a745;
+            color: white;
+        }
+        #stopCamera {
+            background: #dc3545;
+            color: white;
+        }
+        #status {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px;
+            border-radius: 5px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        #capturedImage {
+            margin-top: 20px;
+            display: none;
+            border: 5px solid #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 1s ease-in-out;
         }
     </style>
 </head>
-<body>
+
+<body> <center>
+    <img src="c:\Users\Ajaykumar\Downloads\sjce-removebg-preview.png" width="70" height="70">
+    <h1> St. Joseph's College of Engineering</h1></center>
     <h1>Live Camera Feed</h1>
     <video id="video" autoplay></video>
-    <button id="startCamera">Allow Camera</button>
-    <button id="stopCamera" disabled>Stop Camera</button>
+    <div class="buttons">
+        <button id="startCamera"><i class="fas fa-video"></i> Allow Camera</button>
+        <button id="stopCamera" disabled><i class="fas fa-stop"></i> Stop Camera</button>
+    </div>
     <canvas id="canvas" style="display: none;"></canvas>
-    
+    <img id="capturedImage" alt="Captured Image">
     <div id="status">You are not in the live location.</div>
     
     <script>
@@ -60,25 +107,27 @@
         const canvas = document.getElementById('canvas');
         const context = canvas.getContext('2d');
         const statusText = document.getElementById('status');
-
+        const capturedImage = document.getElementById('capturedImage');
+    
         let streamActive = false;
         let mediaStream = null;
-
+        const targetLocation = { lat: 12.8688, lon: 80.2170};
+        const locationThreshold = 0.01;
+    
         async function startCamera() {
             try {
                 mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
                 video.srcObject = mediaStream;
                 streamActive = true;
-                detectMotion();
                 startCameraButton.disabled = true;
                 stopCameraButton.disabled = false;
+                setTimeout(captureImage, 1000);
             } catch (err) {
-                console.error("Error accessing the camera: ", err);
                 alert("Camera permission denied. Please enable the camera.");
                 streamActive = false;
             }
         }
-
+    
         function stopCamera() {
             if (mediaStream) {
                 mediaStream.getTracks().forEach(track => track.stop());
@@ -87,73 +136,43 @@
                 startCameraButton.disabled = false;
                 stopCameraButton.disabled = true;
                 statusText.textContent = "You are not in the live location.";
+                capturedImage.style.display = "none";
             }
         }
-
-        function detectMotion() {
-            const motionThreshold = 50; // Threshold for motion detection
-            const previousFrame = context.createImageData(640, 480);
-
-            function checkForMotion() {
-                if (!streamActive) return;
-
-                context.drawImage(video, 0, 0, 640, 480);
-                const currentFrame = context.getImageData(0, 0, 640, 480);
-                let motionDetected = false;
-
-                for (let i = 0; i < currentFrame.data.length; i += 4) {
-                    const rDiff = Math.abs(currentFrame.data[i] - previousFrame.data[i]);
-                    const gDiff = Math.abs(currentFrame.data[i + 1] - previousFrame.data[i + 1]);
-                    const bDiff = Math.abs(currentFrame.data[i + 2] - previousFrame.data[i + 2]);
-
-                    if (rDiff + gDiff + bDiff > motionThreshold) {
-                        motionDetected = true;
-                        break;
-                    }
-                }
-
-                if (motionDetected) {
-                    // Automatically capture the image and check location
-                    captureImage();
-                }
-
-                previousFrame.data.set(currentFrame.data);
-                requestAnimationFrame(checkForMotion);
-            }
-
-            requestAnimationFrame(checkForMotion);
-        }
-
+    
         function captureImage() {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             context.drawImage(video, 0, 0);
-            const imageDataUrl = canvas.toDataURL('image/png');
-
-            // Get user's location
+            capturedImage.src = canvas.toDataURL('image/png');
+            capturedImage.style.display = "block";
+            capturedImage.style.animation = "fadeIn 1s ease-in-out";
+            
             navigator.geolocation.getCurrentPosition(position => {
                 const { latitude, longitude } = position.coords;
-                checkLocationAndRedirect(imageDataUrl, latitude, longitude);
+                checkLocation(latitude, longitude);
             }, () => {
-                alert("Unable to retrieve location. Please allow location access.");
+                statusText.textContent = "Unable to retrieve location.";
             });
         }
-
-        function checkLocationAndRedirect(imageDataUrl, latitude, longitude) {
-            // Example coordinates for St. Joseph's College of Engineering
-            const sjceCoordinates = { lat: 12.8307, lon: 80.2248 };
-            const distanceThreshold = 0.01; // Approximate distance in degrees (for simplicity)
-
-            const isInCampus = Math.abs(latitude - sjceCoordinates.lat) < distanceThreshold &&
-                               Math.abs(longitude - sjceCoordinates.lon) < distanceThreshold;
-
-            const locationStatus = isInCampus ? "You are present in the campus." : "You are absent.";
-            const locationPage = 'location.html?img=${encodeURIComponent(imageDataUrl)}&status=${encodeURIComponent(locationStatus)}';
-            window.location.href = locationPage;
+    
+        function checkLocation(latitude, longitude) {
+            const isPresent = Math.abs(latitude - targetLocation.lat) < locationThreshold &&
+                              Math.abs(longitude - targetLocation.lon) < locationThreshold;
+            
+            if (isPresent) {
+                statusText.textContent = "🎉 Student is Present 🎉";
+                setTimeout(() => {
+                    window.location.href = "timetable.html";  // Navigate to timetable.html after a short delay
+                }, 2000); // Navigate after 2 seconds (you can adjust the delay)
+            } else {
+                statusText.textContent = "❌ !!! Sorry !!! Student is Absent ❌";
+            }
         }
-
+    
         startCameraButton.addEventListener('click', startCamera);
         stopCameraButton.addEventListener('click', stopCamera);
     </script>
+    
 </body>
-</html>
+</html> 
