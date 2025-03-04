@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timetable - St. Joseph's College</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+
+        td {
+            background-color: #f9f9f9;
+        }
+
+        .status-button {
+            padding: 8px 16px;
+            font-size: 14px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .status-button.present {
+            background-color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Timetable - St. Joseph's College</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Period</th>
+                <th>Time</th>
+                <th>Venue</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr id="period1">
+                <td>Period 1</td>
+                <td>7:50 - 8:40</td>
+                <td>IT -A</td>
+                <td><button class="status-button" onclick="toggleStatus(this)">Absent</button></td>
+            </tr>
+            <tr id="period2">
+                <td>Period 2</td>
+                <td>8:40 - 9:30</td>
+                <td>IT A</td>
+                <td><button class="status-button" onclick="toggleStatus(this)">Absent</button></td>
+            </tr>
+            <!-- Add more periods as necessary -->
+        </tbody>
+    </table>
+
+    <!-- Camera Access -->
+    <video id="video" width="320" height="240" autoplay></video>
+
+    <script>
+        // Function to toggle between Present and Absent
+        function toggleStatus(button) {
+            if (button.classList.contains('present')) {
+                button.textContent = "Absent";
+                button.classList.remove('present');
+                button.style.backgroundColor = '#e74c3c'; // red for Absent
+            } else {
+                button.textContent = "Present";
+                button.classList.add('present');
+                button.style.backgroundColor = '#27ae60'; // green for Present
+            }
+        }
+
+        // Start webcam
+        function startWebcam() {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(stream) {
+                    const video = document.getElementById('video');
+                    video.srcObject = stream;
+                    video.play();
+                    // For real implementation, here we would add logic for face detection
+                    // For simplicity, let's simulate detection with a timeout
+                    setTimeout(() => {
+                        markAttendance(); // Simulate detecting the student after 3 seconds
+                    }, 3000);
+                })
+                .catch(function(error) {
+                    console.error("Error accessing webcam: ", error);
+                });
+        }
+
+        // Mark attendance as "Present"
+        function markAttendance() {
+            // Simulate marking Period 1 as present
+            const period1Button = document.querySelector('#period1 .status-button');
+            period1Button.textContent = "Present";
+            period1Button.classList.add('present');
+            period1Button.style.backgroundColor = '#27ae60'; // green for Present
+        }
+
+        // Start webcam when the page loads
+        window.onload = function() {
+            startWebcam();
+        };
+    </script>
+
+</body>
+</html>
