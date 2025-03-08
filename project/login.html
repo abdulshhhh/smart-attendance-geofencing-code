@@ -1,118 +1,135 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>REGEO</title>
-    <link rel="icon" href="sjce.png" type="image/x-icon">
+    <title>Login - REGEO</title>
+    <link rel="icon" href="C:\Users\LENOVO\project\project\sjce.png" type="image/x-icon">
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="login.css">
+    <style>
+        .navbar-brand {
+            font-family: 'Arial Black', sans-serif;
+            font-size: 1.8rem;
+            letter-spacing: 1px;
+        }
+        .college-title {
+            color: white;
+            text-align: center;
+            width: 100%;
+            font-size: 1rem;
+            font-weight: bold;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .switch-link {
+            text-align: center;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 
 <body>
     <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark position-relative">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">REGEO</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Contact</a></li>
-                </ul>
-            </div>
+            <a class="navbar-brand" href="#">ℝ𝔼𝔾𝔼𝕆</a>
+            <span class="college-title">ST. JOSEPH'S COLLEGE OF ENGINEERING</span>
         </div>
     </nav>
 
-    <!-- Parallax Background -->
-    <div class="parallax"></div>
-
     <!-- Login Form Container -->
-    <div class="container">
+    <div class="container mt-5">
         <div class="login-container">
-            <h1 class="text-center title">REGEO</h1>
-            <h6 class="text-center subtitle">St. Joseph's College of Engineering</h6>
+            <h1 class="text-center title" id="formTitle">Login to REGEO</h1>
             
-            <form id="loginForm">
-                <div class="form-floating mb-3">
-                    <input type="text" id="name" name="name" class="form-control input-3d" placeholder="Full Name" required>
-                    <label for="name">Full Name</label>
-                </div>
-                <div class="form-floating mb-3">
-                    <input type="text" id="number" name="number" class="form-control input-3d" placeholder="Roll Number" required>
-                    <label for="number">Roll Number</label>
-                </div>
-                <div class="form-floating mb-3">
-                    <input type="text" id="dept" name="dept" class="form-control input-3d" placeholder="Dept & Sec" required>
-                    <label for="dept">Dept & Sec</label>
-                </div>
+            <form id="authForm">
                 <div class="form-floating mb-3">
                     <input type="email" id="email" name="email" class="form-control input-3d" placeholder="Email ID" required>
                     <label for="email">Email ID</label>
                 </div>
                 <div class="form-floating mb-3">
-                    <input type="tel" id="phone" name="phone" class="form-control input-3d" placeholder="Phone Number" required>
-                    <label for="phone">Phone Number</label>
+                    <input type="text" id="rollNumber" name="rollNumber" class="form-control input-3d" placeholder="Roll Number" required>
+                    <label for="rollNumber">Roll Number</label>
                 </div>
-                <button type="submit" class="btn btn-primary btn-3d">Register</button>
+                <div class="form-floating mb-3" id="nameField" style="display: none;">
+                    <input type="text" id="name" name="name" class="form-control input-3d" placeholder="Full Name">
+                    <label for="name">Full Name</label>
+                </div>
+                <button type="submit" class="btn btn-primary btn-3d w-100" id="submitBtn">Login</button>
             </form>
+            <p class="switch-link"><a href="#" id="switchForm">Don't have an account? Sign up</a></p>
         </div>
     </div>
 
-    <!-- Firebase SDK & Configuration -->
+    <!-- Firebase Authentication Script -->
     <script type="module">
-        // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+        import { getFirestore, collection, query, where, getDocs, setDoc, doc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
-        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyB4HW7tLXY49srhc8x1ejwGDzghR_97aws",
             authDomain: "regeo-172bf.firebaseapp.com",
             projectId: "regeo-172bf",
-            storageBucket: "regeo-172bf.firebasestorage.app",
+            storageBucket: "regeo-172bf.appspot.com",
             messagingSenderId: "629442595950",
             appId: "1:629442595950:web:bdaeaa097c8d0e94fdaa7f",
             measurementId: "G-RWMVW1SBQW"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Handle form submission
-        document.getElementById("loginForm").addEventListener("submit", async function (event) {
-            event.preventDefault(); // Prevent default form submission
+        let isLogin = true;
 
-            // Get form values
-            const name = document.getElementById("name").value;
-            const rollNumber = document.getElementById("number").value;
-            const dept = document.getElementById("dept").value;
-            const email = document.getElementById("email").value;
-            const phone = document.getElementById("phone").value;
+        document.getElementById("switchForm").addEventListener("click", function () {
+            isLogin = !isLogin;
+            document.getElementById("formTitle").textContent = isLogin ? "Login to REGEO" : "Sign Up for REGEO";
+            document.getElementById("submitBtn").textContent = isLogin ? "Login" : "Sign Up";
+            document.getElementById("nameField").style.display = isLogin ? "none" : "block";
+            document.getElementById("switchForm").textContent = isLogin ? "Don't have an account? Sign up" : "Already have an account? Login";
+        });
 
-            try {
-                // Store data in Firestore
-                await addDoc(collection(db, "students"), {
-                    name: name,
-                    rollNumber: rollNumber,
-                    dept: dept,
-                    email: email,
-                    phone: phone,
-                    timestamp: new Date().toISOString()
-                });
+        document.getElementById("authForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+            const email = document.getElementById("email").value.trim();
+            const rollNumber = document.getElementById("rollNumber").value.trim();
+            const name = document.getElementById("name").value.trim();
 
-                alert("Registration Successful!");
-                document.getElementById("loginForm").reset(); // Clear form fields
-            } catch (error) {
-                console.error("Error adding document: ", error);
-                alert("Error: " + error.message);
+            if (isLogin) {
+                // Login
+                try {
+                    const q = query(collection(db, "students"), where("email", "==", email), where("rollNumber", "==", rollNumber));
+                    const querySnapshot = await getDocs(q);
+                    if (!querySnapshot.empty) {
+                        alert("Login successful! Redirecting...");
+                        window.location.href = "markin.html";
+                    } else {
+                        alert("Invalid email or roll number.");
+                    }
+                } catch (error) {
+                    alert("Error: " + error.message);
+                }
+            } else {
+                // Sign Up
+                try {
+                    await createUserWithEmailAndPassword(auth, email, rollNumber);
+                    await setDoc(doc(db, "students", email), {
+                        email,
+                        rollNumber,
+                        name
+                    });
+                    alert("Sign-up successful! Please log in.");
+                    document.getElementById("switchForm").click();
+                } catch (error) {
+                    alert("Error: " + error.message);
+                }
             }
         });
     </script>
