@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REGEO - live Moving cam</title>
+    <link rel="icon" href="sjce.png" type="image/x-icon">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: url('St.jpg');
+            margin: 0;
+            padding: 0px;
+            text-align: center;
+            animation: fadeIn 1s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        h1 {
+            color: #fff;
+            font-size: 2rem;
+            animation: slideIn 1s ease-in-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        video {
+            width: 100%;
+            max-width: 600px;
+            border: 5px solid #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 1.5s ease-in-out;
+        }
+        .buttons {
+            margin-top: 20px;
+        }
+        button {
+            padding: 12px 20px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin: 10px;
+            transform: scale(1);
+            transition: transform 0.3s;
+        }
+        button:hover {
+            transform: scale(1.1);
+        }
+        #startCamera {
+            background: #28a745;
+            color: white;
+        }
+        #stopCamera, #retryLocation {
+            background: #dc3545;
+            color: white;
+        }
+        #captureImage {
+            background: #007bff;
+            color: white;
+        }
+        #submitAttendance {
+            background: #6610f2;
+            color: white;
+        }
+        #status {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px;
+            border-radius: 5px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        #capturedImage {
+            margin-top: 20px;
+            display: none;
+            border: 5px solid #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 1s ease-in-out;
+            max-width: 400px;
+            width: 100%;
+        }
+        .progress-container {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            padding: 5px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .progress-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 25%;
+        }
+        .step-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #ccc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            margin-bottom: 5px;
+        }
+        .step-active {
+            background-color: #007bff;
+        }
+        .step-complete {
+            background-color: #28a745;
+        }
+        .step-text {
+            font-size: 12px;
+            color: #333;
+            text-align: center;
+        }
+        .accuracy-indicator {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .high-accuracy {
+            background-color: #28a745;
+            color: white;
+        }
+        .medium-accuracy {
+            background-color: #ffc107;
+            color: black;
+        }
+        .low-accuracy {
+            background-color: #dc3545;
+            color: white;
+        }
+        #locationDetails {
+            margin-top: 10px;
+            color: white;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        /* Debug panel for easier troubleshooting */
+        #debugPanel {
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #00ff00;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: left;
+            font-family: monospace;
+            display: none;
+        }
+        /* Toggle for debug mode */
+        #debugToggle {
+            background: #333;
+            color: #fff;
+            padding: 5px 10px;
+            font-size: 12px;
+            margin-top: 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body> 
+    <center>
+        <img src="logo.jpg" width="70" height="70">
+        <h1> St. Joseph's College of Engineering</h1>
+    </center>
+    <h1>Live Camera Feed</h1>
+    
+    <!-- Progress Steps -->
+    <div class="progress-container">
+        <div class="progress-step">
+            <div class="step-icon step-active" id="step1">1</div>
+            <div class="step-text">Camera</div>
+        </div>
+        <div class="progress-step">
+            <div class="step-icon" id="step2">2</div>
+            <div class="step-text">Capture</div>
+        </div>
+        <div class="progress-step">
+            <div class="step-icon" id="step3">3</div>
+            <div class="step-text">Location</div>
+        </div>
+        <div class="progress-step">
+            <div class="step-icon" id="step4">4</div>
+            <div class="step-text">Submit</div>
+        </div>
+    </div>
+    
+    <video id="video" autoplay></video>
+    <div class="buttons">
+        <button id="startCamera"><i class="fas fa-video"></i> Allow Camera</button>
+        <button id="captureImage" disabled><i class="fas fa-camera"></i> Capture Image</button>
+        <button id="retryLocation" style="display: none;"><i class="fas fa-location-arrow"></i> Retry Location</button>
+        <button id="submitAttendance" style="display: none;"><i class="fas fa-check-circle"></i> Submit Attendance</button>
+        <button id="stopCamera" disabled><i class="fas fa-stop"></i> Stop Camera</button>
+        <p>Distance to Geofence: <span id="distance"></span> meters</p>
+
+    </div>
+    
+    <div id="locationDetails"></div>
+    <canvas id="canvas" style="display: none;"></canvas>
+    <img id="capturedImage" alt="Captured Image">
+    <div id="status">We really value your patience</div>
+    
+    <!-- Debug Panel -->
+    <div id="debugToggle" onclick="toggleDebug()">Show Debug Info</div>
+    <div id="debugPanel"></div>
+    
+    <script>
+        // DOM Elements
+        const video = document.getElementById('video');
+        const startCameraButton = document.getElementById('startCamera');
+        const captureImageButton = document.getElementById('captureImage');
+        const stopCameraButton = document.getElementById('stopCamera');
+        const retryLocationButton = document.getElementById('retryLocation');
+        const submitAttendanceButton = document.getElementById('submitAttendance');
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+        const statusText = document.getElementById('status');
+        const capturedImage = document.getElementById('capturedImage');
+        const locationDetails = document.getElementById('locationDetails');
+        const debugPanel = document.getElementById('debugPanel');
+        
+        // Progress step elements
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        const step3 = document.getElementById('step3');
+        const step4 = document.getElementById('step4');
+
+        // Fixed College Location (Latitude & Longitude)
+        const targetLocation = { lat: 13.173701058468684, lon: 80.09724316480435 };
+        const locationThreshold = 0.05; // INCREASED from 0.01 to 0.05 (about 5.5 km)
+        const highAccuracyThreshold = 150; // INCREASED from 50 to 150 meters
+        const mediumAccuracyThreshold = 300; // INCREASED from 100 to 300 meters
+        
+        let mediaStream = null;
+        let studentLocation = null;
+        let locationAccuracy = 0;
+        let locationTimestamp = 0;
+        let locationVerified = false;
+        let imageCaptured = false;
+        let studentId = "demo_student"; // In a real app, this would come from login
+        let debugMode = false;
+
+        // Toggle debug panel
+        function toggleDebug() {
+            debugMode = !debugMode;
+            debugPanel.style.display = debugMode ? 'block' : 'none';
+            document.getElementById('debugToggle').textContent = 
+                debugMode ? 'Hide Debug Info' : 'Show Debug Info';
+            updateDebugInfo();
+        }
+
+        // Update debug info
+        function updateDebugInfo() {
+            if (!debugMode) return;
+            
+            const info = {
+                locationThreshold: `${locationThreshold * 1000} meters`,
+                highAccuracyThreshold: `${highAccuracyThreshold} meters`,
+                mediumAccuracyThreshold: `${mediumAccuracyThreshold} meters`,
+                targetLocation: targetLocation,
+                studentLocation: studentLocation || 'Not detected yet',
+                locationAccuracy: locationAccuracy || 'Not measured yet',
+                locationVerified: locationVerified
+            };
+            
+            debugPanel.innerHTML = '<h3>Debug Information</h3>';
+            for (const [key, value] of Object.entries(info)) {
+                debugPanel.innerHTML += `<div><strong>${key}:</strong> ${JSON.stringify(value)}</div>`;
+            }
+        }
+
+        // Initialize the app state
+        function initApp() {
+            updateProgressStep(1);
+            statusText.textContent = "Please allow camera access to begin";
+            updateDebugInfo();
+        }
+
+        // Update progress steps UI
+        function updateProgressStep(step) {
+            // Reset all steps
+            step1.className = "step-icon";
+            step2.className = "step-icon";
+            step3.className = "step-icon";
+            step4.className = "step-icon";
+            
+            // Mark current and previous steps
+            for (let i = 1; i <= 4; i++) {
+                const stepElement = document.getElementById(`step${i}`);
+                if (i < step) {
+                    stepElement.className = "step-icon step-complete";
+                    stepElement.innerHTML = '<i class="fas fa-check"></i>';
+                } else if (i === step) {
+                    stepElement.className = "step-icon step-active";
+                    stepElement.textContent = i;
+                } else {
+                    stepElement.className = "step-icon";
+                    stepElement.textContent = i;
+                }
+            }
+        }
+
+        // Start camera function
+        async function startCamera() {
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "user" } // Use front camera on mobile
+                });
+                video.srcObject = mediaStream;
+                startCameraButton.disabled = true;
+                captureImageButton.disabled = false;
+                stopCameraButton.disabled = false;
+                statusText.textContent = "Camera active. Please capture your image.";
+                updateProgressStep(1);
+            } catch (err) {
+                alert("Camera permission denied. Please enable the camera.");
+                statusText.textContent = "Camera access denied";
+            }
+        }
+
+        // Stop camera function
+        function stopCamera() {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+                startCameraButton.disabled = false;
+                captureImageButton.disabled = true;
+                stopCameraButton.disabled = true;
+                statusText.textContent = "Camera stopped";
+                capturedImage.style.display = "none";
+                updateProgressStep(1);
+            }
+        }
+
+        // Capture image function
+        function captureImage() {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0);
+            capturedImage.src = canvas.toDataURL('image/png');
+            capturedImage.style.display = "block";
+            imageCaptured = true;
+            
+            // Update UI
+            statusText.textContent = "Image captured. Checking your location...";
+            captureImageButton.disabled = true;
+            updateProgressStep(2);
+            
+            // Get location
+            getLocation();
+        }
+
+        // Get location with high accuracy
+        function getLocation() {
+            if (navigator.geolocation) {
+                statusText.textContent = "Getting your location...";
+                navigator.geolocation.getCurrentPosition(
+                    processLocation, 
+                    handleLocationError,
+                    { 
+                        enableHighAccuracy: true,
+                        timeout: 15000, // Increased from 10000 to 15000
+                        maximumAge: 0
+                    }
+                );
+            } else {
+                statusText.textContent = "Geolocation is not supported by this browser.";
+                handleLocationError({ code: 0, message: "Geolocation not supported" });
+            }
+        }
+
+        // Process location data - simplified version
+        function processLocation(position) {
+            const { latitude, longitude, accuracy } = position.coords;
+            locationAccuracy = accuracy;
+            locationTimestamp = position.timestamp;
+            studentLocation = { lat: latitude, lon: longitude };
+            
+            // Update debug information
+            updateDebugInfo();
+            
+            // Continue with location verification regardless of accuracy
+            verifyLocation(latitude, longitude, accuracy);
+        }
+
+        // First-step geofencing verification - simplified
+        function verifyLocation(latitude, longitude, accuracy) {
+            // Calculate distance from target
+            const distance = calculateDistance(
+                latitude, longitude,
+                targetLocation.lat, targetLocation.lon
+            );
+            
+            const distanceInMeters = distance * 1000; // Convert km to meters
+            const allowedThreshold = locationThreshold * 1000; // Simplified threshold without accuracy
+            
+            // Update debug information
+            updateDebugInfo();
+            
+            // Update UI for step 3
+            updateProgressStep(3);
+            
+            // Simplified verification - just check if within threshold
+            if (distanceInMeters <= allowedThreshold) {
+                locationVerified = true;
+                statusText.textContent = "Location verified! You are present at college.";
+                submitAttendanceButton.style.display = "inline-block";
+                retryLocationButton.style.display = "none";
+            } else {
+                locationVerified = false;
+                statusText.textContent = `You are not within the college area.`;
+                submitAttendanceButton.style.display = "inline-block"; // Still allow submission
+                retryLocationButton.style.display = "inline-block";
+            }
+        }
+        
+        // Secondary location verification to detect movement
+        function getLocationMovementVerification() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const { latitude, longitude } = position.coords;
+                        const newLocation = { lat: latitude, lon: longitude };
+                        
+                        // Check if location has changed naturally
+                        const movement = calculateDistance(
+                            studentLocation.lat, studentLocation.lon,
+                            latitude, longitude
+                        ) * 1000; // in meters
+                        
+                        // Update debug information
+                        updateDebugInfo();
+                        
+                        // If movement is too large in a short time, it might be suspicious
+                        if (movement > 100 && (position.timestamp - locationTimestamp < 10000)) {
+                            locationDetails.innerHTML += `
+                                <div style="color: orange;">⚠️ Unusual movement detected</div>
+                            `;
+                        }
+                    },
+                    () => {/* Ignore errors on secondary check */},
+                    { enableHighAccuracy: true }
+                );
+            }
+        }
+
+        // Handle location errors
+        function handleLocationError(error) {
+            let errorMessage = "";
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    errorMessage = "Location access denied. Please enable location services.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    errorMessage = "Location information is unavailable. Please try again.";
+                    break;
+                case error.TIMEOUT:
+                    errorMessage = "Location request timed out. Please try again.";
+                    break;
+                default:
+                    errorMessage = "An unknown error occurred getting your location.";
+                    break;
+            }
+            
+            statusText.textContent = errorMessage;
+            retryLocationButton.style.display = "inline-block";
+            submitAttendanceButton.style.display = "inline-block"; // Allow submission even with errors
+            
+            // Update debug information with the error
+            if (debugMode) {
+                debugPanel.innerHTML += `<div style="color:red;"><strong>Error:</strong> ${errorMessage}</div>`;
+            }
+        }
+
+        // Calculate distance between two points using Haversine formula
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Radius of the earth in km
+            const dLat = deg2rad(lat2 - lat1);
+            const dLon = deg2rad(lon2 - lon1);
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2); 
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+            const distance = R * c; // Distance in km
+            return distance;
+        }
+
+        function deg2rad(deg) {
+            return deg * (Math.PI/180);
+        }
+
+       // Frontend code - modified submitAttendance function
+// Frontend code - updated submitAttendance function
+// Frontend code - improved submitAttendance function with better error handling
+function submitAttendance() {
+  updateProgressStep(4);
+  statusText.textContent = "Submitting attendance...";
+  
+  const attendanceStatus = locationVerified ? "Present" : "Absent";
+  const timestamp = new Date().toISOString();
+  const date = new Date().toLocaleDateString('en-US');
+  const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+  
+  // Get user ID from your authentication system
+  const userId = getUserId() || 'default_user'; // Fallback to prevent empty userId
+  
+  // Prepare data to send to backend
+  const attendanceData = {
+    userId,
+    date,
+    time,
+    timestamp,
+    status: attendanceStatus,
+    locationVerified
+  };
+  
+  console.log("Submitting attendance data:", attendanceData);
+  
+  // Test if the server is reachable first
+  fetch('http://localhost:5000/')
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Server check failed with status: ${response.status}`);
+      }
+      console.log("Server is reachable, proceeding with attendance submission");
+      
+      // Now submit the attendance data
+      return fetch('http://localhost:5000/api/attendance', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(attendanceData),
+        // Add these options to help with CORS issues
+        mode: 'cors',
+        credentials: 'same-origin'
+      });
+    })
+    .then(response => {
+      console.log("Raw response:", response);
+      if (!response.ok) {
+        return response.text().then(text => {
+          throw new Error(`HTTP error! Status: ${response.status}, Body: ${text}`);
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log("Response from server:", data);
+      if (data.success) {
+        statusText.textContent = "Attendance submitted successfully!";
+        // Maybe show a success message or update UI
+      } else {
+        statusText.textContent = "Failed to submit attendance: " + (data.message || "Unknown error");
+        console.error('Error:', data.message);
+      }
+    })
+    .catch(error => {
+      statusText.textContent = "Error submitting attendance: " + error.message;
+      console.error('Fetch Error:', error);
+      // Display error in UI for debugging
+      const debugPanel = document.getElementById('debugPanel');
+      if (debugPanel) {
+        debugPanel.style.display = 'block';
+        debugPanel.innerHTML += `<div style="color:red;">Error: ${error.message}</div>`;
+      }
+    });
+}
+
+// Helper function to get user ID (implement based on your authentication system)
+function getUserId() {
+  // This is a placeholder - replace with your actual implementation
+  return localStorage.getItem('userId') || sessionStorage.getItem('userId') || 'Abdul';
+}
+
+        // Event Listeners
+        startCameraButton.addEventListener('click', startCamera);
+        stopCameraButton.addEventListener('click', stopCamera);
+        captureImageButton.addEventListener('click', captureImage);
+        retryLocationButton.addEventListener('click', getLocation);
+        submitAttendanceButton.addEventListener('click', submitAttendance);
+
+        // Initialize app on load
+        initApp();
+        const geoFenceLocation = { lat: 12.8689, lon: 80.0934 }; // Example geofenced location
+
+        function getDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371000; // Radius of Earth in meters
+            const φ1 = lat1 * Math.PI / 180;
+            const φ2 = lat2 * Math.PI / 180;
+            const Δφ = (lat2 - lat1) * Math.PI / 180;
+            const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+            const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                    Math.cos(φ1) * Math.cos(φ2) *
+                    Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+            return R * c; // Distance in meters
+        }
+
+        function updateDistance() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    const userLat = position.coords.latitude;
+                    const userLon = position.coords.longitude;
+
+                    const distance = getDistance(userLat, userLon, geoFenceLocation.lat, geoFenceLocation.lon);
+                    document.getElementById("distance").textContent = distance.toFixed(2) + " m";
+                }, error => {
+                    document.getElementById("distance").textContent = "YOU ARE 20 KMs AWAY FROM THE GEOFENCED LOCATION ";
+                });
+            } else {
+                document.getElementById("distance").textContent = "Geolocation not supported.";
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", updateDistance);
+    </script>
+    
+</body>
+</html>

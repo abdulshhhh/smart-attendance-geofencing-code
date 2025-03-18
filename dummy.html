@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance MarkIn</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 20px;
+            background: url('St.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: #1C1C1C;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 2em;
+            color: #004AAD;
+        }
+
+        select {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: none;
+            background: #004AAD;
+            color: white;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        select:hover {
+            background: #003080;
+        }
+
+        table {
+            width: 90%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        th, td {
+            border: 1px solid #004AAD;
+            padding: 12px;
+            text-align: center;
+        }
+
+        th {
+            background: linear-gradient(to bottom, #004AAD, #003080);
+            color: white;
+            font-size: 16px;
+        }
+
+        td {
+            font-size: 14px;
+            color: #1C1C1C;
+            cursor: pointer;
+            position: relative;
+        }
+
+        button {
+            padding: 10px;
+            background: linear-gradient(to right, #004AAD, #003080);
+            color: white;
+            font-size: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s;
+        }
+
+        button:hover {
+            background: #003080;
+            transform: scale(1.05);
+        }
+
+        <style>
+/* Updated Pop-Up Styles */
+.modal {
+    display: block; /* Avoid flicker before JS executes */
+    opacity: 0;
+    visibility: hidden;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -60%);
+    background: linear-gradient(to right, #f9f9f9, #f1f1f1);
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.modal.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%);
+}
+
+.modal-header {
+    font-size: 20px;
+    font-weight: bold;
+    color: #003080;
+    margin-bottom: 20px;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.modal-body {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.modal button,
+.modal a {
+    margin: 5px;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(to right, #004AAD, #0073FF);
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.modal button:hover,
+.modal a:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.modal-overlay {
+    display: block; /* Avoid flicker before JS executes */
+    opacity: 0;
+    visibility: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 999;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    }
+
+
+    @keyframes slideIn {
+        from {
+            transform: translate(-50%, -60%);
+            opacity: 0;
+        }
+        to {
+            transform: translate(-50%, -50%);
+            opacity: 1;
+        }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes fadeOut {
+        from {
+            opacity: 1;
+        }
+        to {
+            opacity: 0;
+        }
+    }
+</style>
+    </style>
+</head>
+<body>
+    <h2>📅 Smart Attendance MarkIn</h2>
+    <label for="dayFilter">Filter by Day:</label>
+    <select id="dayFilter" onchange="filterTable()">
+        <option value="All">All Days</option>
+        <option value="Monday">Monday</option>
+        <option value="Tuesday">Tuesday</option>
+        <option value="Wednesday">Wednesday</option>
+        <option value="Thursday">Thursday</option>
+        <option value="Friday">Friday</option>
+        <option value="Saturday">Saturday</option>
+    </select>
+    <table>
+        <thead>
+            <tr>
+                <th>Periods</th>
+                <th>Monday</th>
+                <th>Tuesday</th>
+                <th>Wednesday</th>
+                <th>Thursday</th>
+                <th>Friday</th>
+                <th>Saturday</th>
+            </tr>
+        </thead>
+        <tbody id="attendanceTable"></tbody>
+    </table>
+
+    <!-- Modal -->
+    <div class="modal-overlay" onclick="closeModal()"></div>
+    <div class="modal" id="eventModal">
+        <div class="modal-header" id="modalHeader"></div>
+        <div class="modal-body" id="modalBody"></div>
+        
+        <a href="camera1.html" onclick="markAttendance()" style="display: block; padding: 8px; background: linear-gradient(to right, #004AAD, #003080); color: white; font-size: 12px; text-align: center; border-radius: 5px; text-decoration: none; transition: transform 0.2s, background 0.3s;">Mark Attendance</a>
+
+    
+        <button onclick="closeModal()">Close</button>
+    </div>
+
+    <script>
+        const periods = ["Period 1", "Period 2", "Period 3", "Period 4", "Period 5", "Period 6"];
+        const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const subjects = [
+            "Data Structures", "Algorithms", "Operating Systems", 
+            "Computer Networks", "Database Management", "AI & ML", "Cyber Security"
+        ];
+
+        // Generate table with random subjects
+        function generateTable() {
+            const tableBody = document.getElementById('attendanceTable');
+            tableBody.innerHTML = periods.map(period => {
+                return `
+                    <tr>
+                        <td><b>${period}</b></td>
+                        ${days.map(day => {
+                            const subject = subjects[Math.floor(Math.random() * subjects.length)];
+                            return `
+                                <td class="${day}" onclick="showEvent('${period}', '${day}', '${subject}')">
+                                    ${subject}
+                                </td>`;
+                        }).join('')}
+                    </tr>
+                `;
+            }).join('');
+        }
+
+       // Show pop-up modal with smooth animation
+function showEvent(period, day, subject) {
+    document.getElementById('modalHeader').textContent = `${period} - ${day}`;
+    document.getElementById('modalBody').textContent = `Today's Event: Special ${subject} Session`;
+    document.querySelector('.modal-overlay').classList.add('active');
+    document.getElementById('eventModal').classList.add('active');
+}
+
+// Close modal with smooth animation
+function closeModal() {
+    document.querySelector('.modal-overlay').classList.remove('active');
+    document.getElementById('eventModal').classList.remove('active');
+}
+
+
+        // Simulate marking attendance
+        function markAttendance() {
+            alert("✅ Attendance Marked!");
+            closeModal();
+        }
+
+        // Simulate confirming presence
+        function confirmPresence() {
+            alert("📍 Presence Confirmed!");
+            closeModal();
+        }
+
+        // Filter table by day
+        function filterTable() {
+            const selectedDay = document.getElementById("dayFilter").value;
+            const rows = document.querySelectorAll("#attendanceTable tr");
+            rows.forEach(row => {
+                if (selectedDay === "All") {
+                    row.style.display = "table-row";
+                } else {
+                    row.style.display = row.querySelector(`.${selectedDay}`) ? "table-row" : "none";
+                }
+            });
+        }
+
+        // Generate table on page load
+        generateTable();
+        
+    // Smooth transition to the next page
+    function navigateToNextPage(url) {
+        document.body.style.animation = "fadeOut 0.5s ease-in-out";
+        document.body.addEventListener("animationend", () => {
+            window.location.href = url;
+        });
+    }
+
+    function markAttendance() {
+        alert("✅ Attendance Marked!");
+        closeModal();
+        setTimeout(() => {
+            navigateToNextPage("camera1.html");
+        }, 500);
+    }
+    </script>
+</body>
+</html>

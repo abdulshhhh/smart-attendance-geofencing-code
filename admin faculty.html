@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty Attendance</title>
+
+    <!-- Bootstrap CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    <!-- Chart.js for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Socket.io for Real-Time Updates -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: auto;
+        }
+        table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .status-present {
+            background-color: #28a745;
+            color: white;
+        }
+        .status-checked-in {
+            background-color: #ffc107;
+            color: black;
+        }
+        .status-absent {
+            background-color: #dc3545;
+            color: white;
+        }
+        .status-blink {
+            animation: blink 1s infinite alternate;
+        }
+        @keyframes blink {
+            from { opacity: 1; }
+            to { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h2 class="text-center mb-4"><i class="fas fa-chart-line"></i> Attendance Analytics</h2>
+        <div class="row text-center mb-4">
+            <div class="col-md-4">
+                <div class="card shadow-sm p-3">
+                    <h5>Total Faculty</h5>
+                    <h3 id="totalFaculty">0</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-sm p-3 bg-success text-white">
+                    <h5>Present</h5>
+                    <h3 id="presentFaculty">0</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow-sm p-3 bg-danger text-white">
+                    <h5>Absent</h5>
+                    <h3 id="absentFaculty">0</h3>
+                </div>
+            </div>
+        </div>
+        <canvas id="attendanceChart" class="mt-4"></canvas>
+    </div>
+
+    <div class="container mt-4">
+        <h2 class="text-center mb-4"><i class="fas fa-user-check"></i> Faculty Attendance</h2>
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered shadow">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Faculty Name</th>
+                        <th>Email</th>
+                        <th>Check-In</th>
+                        <th>Check-Out</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="attendanceBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const socket = io("http://localhost:5000");
+
+        document.addEventListener("DOMContentLoaded", function () {
+            fetchFacultyAttendance();
+            fetchAttendanceAnalytics();
+        });
+
+        function fetchFacultyAttendance() {
+            fetch("http://localhost:5000/admin/faculty-attendance")
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        populateTable(data.data);
+                    }
+                })
+                .catch(error => console.error("Error fetching faculty data:", error));
+        }
+
+        function fetchAttendanceAnalytics() {
+            fetch("http://localhost:5000/admin/attendance-analytics")
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById("totalFaculty").innerText = data.total;
+                        document.getElementById("presentFaculty").innerText = data.present;
+                        document.getElementById("absentFaculty").innerText = data.absent;
+                    }
+                })
+                .catch(error => console.error("Error fetching analytics:", error));
+        }
+
+        function populateTable(facultyData) {
+            const tableBody = document.getElementById("attendanceBody");
+            tableBody.innerHTML = "";
+            facultyData.forEach(faculty => {
+                let statusBadge = faculty.checkIn 
+                    ? (faculty.checkOut 
+                        ? "<span class='status-badge status-present'>Present</span>" 
+                        : "<span class='status-badge status-checked-in status-blink'>Checked-In</span>")
+                    : "<span class='status-badge status-absent'>Absent</span>";
+                let row = `<tr>
+                    <td>${faculty.name}</td>
+                    <td>${faculty.email}</td>
+                    <td>${faculty.checkIn || "N/A"}</td>
+                    <td>${faculty.checkOut || "N/A"}</td>
+                    <td>${statusBadge}</td>
+                    <td></td>
+                </tr>`;
+                tableBody.innerHTML += row;
+            });
+        }
+
+        socket.on("updateAttendance", (updatedData) => {
+            populateTable(updatedData);
+        });
+    </script>
+</body>
+</html>

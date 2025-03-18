@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REGEO - Select User</title>
+    <link rel="icon" href="sjce.png" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: url('St.jpg') no-repeat center center/cover;
+        }
+
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(15px);
+            max-width: 400px;
+        }
+
+        h1 {
+            margin-bottom: 15px;
+            color: #fff;
+            text-transform: uppercase;
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .btn i {
+            font-size: 20px;
+        }
+
+        .btn-student {
+            background: linear-gradient(45deg, #ff512f, #dd2476);
+            box-shadow: 0 5px 15px rgba(255, 81, 47, 0.3);
+        }
+
+        .btn-admin {
+            background: linear-gradient(45deg, #36d1dc, #5b86e5);
+            box-shadow: 0 5px 15px rgba(54, 209, 220, 0.3);
+        }
+
+        .btn-faculty {
+            background: linear-gradient(45deg, #ff9a44, #fc6076);
+            box-shadow: 0 5px 15px rgba(252, 96, 118, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 500px) {
+            .container {
+                max-width: 90%;
+                padding: 30px;
+            }
+        }
+    </style>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+</head>
+<body>
+    <div class="container">
+        <h1>REGEO</h1>
+        <h1>Choose LOGIN as</h1>
+
+        <div class="button-container">
+            <a href="login.html"> 
+                <button class="btn btn-student" onclick="alert('Student Login')">
+                    <i class="fas fa-user-graduate"></i> Student
+                </button>
+            </a>
+            <a href="staff login.html"> 
+                <button class="btn btn-admin" onclick="alert('Admin Login')">
+                    <i class="fas fa-user-shield"></i> Admin
+                </button>
+            </a>
+            <a href="faculty login.html"> 
+                <button class="btn btn-faculty" onclick="alert('Faculty Login')">
+                    <i class="fas fa-chalkboard-teacher"></i> Faculty
+                </button>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

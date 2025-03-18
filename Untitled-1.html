@@ -1,0 +1,61 @@
+    <!-- Add this just before closing body tag -->
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            // Add your Firebase config here
+            // Get this from your Firebase Console
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        let imageCapture;
+        const video = document.createElement('video');
+        const canvas = document.createElement('canvas');
+        const capturedImage = document.getElementById('capturedImage');
+
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                video.play();
+                document.body.appendChild(video);
+            } catch (err) {
+                console.error('Error accessing camera:', err);
+            }
+        }
+
+        async function captureAndSave() {
+            // Set canvas dimensions to match video
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // Draw current video frame to canvas
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            
+            // Convert canvas to data URL
+            const imageData = canvas.toDataURL('image/jpeg');
+            
+            // Display captured image
+            capturedImage.src = imageData;
+            capturedImage.style.display = 'block';
+            
+            // Save to Firebase
+            const timestamp = new Date().toISOString();
+            await database.ref('attendance').push({
+                timestamp: timestamp,
+                image: imageData,
+                status: 'present'
+            });
+
+            // Update status
+            document.getElementById('status').textContent = 'Attendance Marked Successfully!';
+            document.getElementById('status').style.color = '#28a745';
+        }
+
+        // Add event listeners to buttons
+        document.getElementById('startCamera').addEventListener('click', startCamera);
+        document.getElementById('captureImage').addEventListener('click', captureAndSave);
+    </script>
+</body>

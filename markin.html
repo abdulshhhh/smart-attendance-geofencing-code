@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REGEO - Mark Attendance</title>
+    <link rel="icon" href="sjce.png" type="image/x-icon">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --background: #f0f0f0;
+            --container-bg: white;
+            --text-color: #333;
+            --button-bg: #05135f;
+            --button-hover-bg: #b9a635;
+            --icon-color: #05135f;
+            --icon-hover-color: #b9a635;
+        }
+
+        [data-theme="dark"] {
+            --background: #1a1a1a;
+            --container-bg: #333;
+            --text-color: #f0f0f0;
+            --button-bg: #444;
+            --button-hover-bg: #555;
+            --icon-color: #f0f0f0;
+            --icon-hover-color: #3498db;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url("St.jpg");
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background-size: cover;
+            color: var(--text-color);
+            transition: background-color 0.8s ease, color 0.8s ease;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: var(--container-bg);
+            padding: 50px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 10;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .container.exit {
+            transform: scale(0.9) translateY(-100px);
+            opacity: 0;
+        }
+
+        h1 {
+            color: var(--text-color);
+            transition: transform 0.5s ease;
+        }
+
+        /* Enhanced Button Styles */
+        .super-fancy-button {
+            position: relative;
+            margin: 25px auto;
+            display: inline-block;
+            border-radius: 30px;
+            animation: glowing 1.5s infinite;
+        }
+        
+        .attendance-btn {
+            background: linear-gradient(135deg, #05135f, #3a1591);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 28px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 6px 15px rgba(5, 19, 95, 0.4);
+        }
+        
+        .attendance-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            background: linear-gradient(135deg, #b9a635, #e0c641);
+            box-shadow: 0 10px 20px rgba(185, 166, 53, 0.5);
+        }
+        
+        .attendance-btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+        
+        .btn-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .attendance-btn i {
+            font-size: 20px;
+            transition: transform 0.3s ease;
+        }
+        
+        .attendance-btn:hover i {
+            transform: scale(1.2) rotate(-10deg);
+        }
+        
+        /* Enhanced shine effect */
+        .shine-effect {
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.1) 25%,
+                rgba(255, 255, 255, 0.5) 50%,
+                rgba(255, 255, 255, 0.1) 75%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: rotate(30deg) translateY(100%);
+            opacity: 0;
+            z-index: 1;
+            transition: transform 0s;
+        }
+        
+        .attendance-btn:hover .shine-effect {
+            opacity: 1;
+            transform: rotate(30deg) translateY(-100%);
+            transition: transform 0.8s ease-out;
+        }
+        
+        /* Enhanced pulse animation */
+        @keyframes glowing {
+            0% { box-shadow: 0 0 5px rgba(5, 19, 95, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(5, 19, 95, 0.8), 0 0 30px rgba(5, 19, 95, 0.5); }
+            100% { box-shadow: 0 0 5px rgba(5, 19, 95, 0.5); }
+        }
+        
+        /* Small click animation */
+        @keyframes click-pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
+        
+        .attendance-btn:active {
+            animation: click-pulse 0.3s ease;
+        }
+
+        /* Keeping your existing animations and transitions */
+        @keyframes scale-down {
+            from {
+                transform: scale(1);
+                opacity: 1;
+            }
+            to {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+        }
+
+        @keyframes flash {
+            0%, 100% {
+                opacity: 0.3;
+                box-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
+            }
+            50% {
+                opacity: 1;
+                box-shadow: 0 0 10px #ffffff, 0 0 20px rgba(255, 255, 255, 0.5);
+            }
+        }
+
+        .camera-flash {
+            animation: flash 2s infinite;
+        }
+
+        .icons {
+            display: flex;
+            justify-content: center;
+            margin-top: 40px;
+            flex-wrap: wrap;
+            gap: 20px;
+            transition: transform 0.4s ease;
+        }
+
+        .icons a {
+            color: var(--icon-color);
+            text-decoration: none;
+            padding: 15px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .icons a:hover {
+            transform: translateY(-5px);
+            background-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .icons a:hover i {
+            transform: scale(1.2);
+            color: var(--icon-hover-color);
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #05135f;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .theme-toggle:hover {
+            background: #b9a635;
+            transform: scale(1.05);
+        }
+
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1.1);
+            }
+        }
+
+        .page-transition {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(138, 43, 226, 0.7), rgba(138, 43, 226, 0));
+            opacity: 0;
+            pointer-events: none;
+            z-index: 9998;
+            transition: opacity 0.8s ease;
+        }
+
+        .page-transition.active {
+            opacity: 1;
+        }
+
+        body.transitioning {
+            animation: fadeOut 0.8s forwards;
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">Toggle Dark Mode</button>
+    <div class="page-transition" id="page-transition"></div>
+    
+    <div class="container" id="main-container">
+        <img src="logo.jpg" width="150px">
+        <h1>Mark Attendance</h1>
+        <h1 style="color: #7c030d;">St. Joseph's College Of Engineering</h1>
+        <h2 style="color: #ad880b;">(An Autonomous Institution)</h2>
+        <h2 style="color: #5d1574;">St. Joseph's Group of Institution</h2>
+        <h3 style="color: #0a0a0a;">OMR, Chennai-119</h3>
+
+        <p>Today's Date: <span id="date"></span></p>
+        
+        <!-- Enhanced Mark Attendance Button -->
+        <div class="super-fancy-button pulse-ring">
+            <button onclick="goToCamera()" id="attendance-button" class="attendance-btn">
+                <div class="btn-content">
+                    <i class="fas fa-camera"></i>
+                    <span>Mark Attendance</span>
+                </div>
+                <div class="shine-effect"></div>
+            </button>
+        </div>
+
+        <div class="icons">
+            <a href="timetable.html"><i class="fas fa-calendar-alt"></i> Timetable</a>
+            <a href="leaveapproval.html"><i class="fas fa-user-times"></i> Leave Approval</a>
+            <a href="int.html"><i class="fas fa-check-circle"></i> Internal Checker</a>
+            <a href="rewards.html"><i class="fas fa-trophy"></i> Rewards</a>
+        </div>
+    </div>
+
+    <script>
+        
+        // Add date display functionality
+        document.addEventListener("DOMContentLoaded", function() {
+            const today = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById("date").textContent = today.toLocaleDateString('en-US', options);
+        });
+        
+        // Theme toggle functionality
+        function toggleTheme() {
+            document.body.setAttribute('data-theme', 
+                document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+        }
+        
+        // Fixed page transition functionality that navigates to camera1.html
+        function goToCamera() {
+            const transition = document.getElementById('page-transition');
+            const container = document.getElementById('main-container');
+            
+            transition.classList.add('active');
+            container.classList.add('exit');
+            
+            // Set timeout to allow the animation to complete before redirecting
+            setTimeout(function() {
+                window.location.href = 'dummy.html';
+            }, 800);
+        }
+        
+    </script>
+</body>
+</html>
