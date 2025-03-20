@@ -100,7 +100,7 @@ app.get("/admin/attendance-analytics", async (req, res) => {
 
         res.status(200).json({ success: true, total, present, absent });
     } catch (error) {
-        console.error("❌ Error fetching analytics:", error);
+        console.errduor("❌ Error fetching analytics:", error);
         res.status(500).json({ success: false, message: "Error fetching analytics" });
     }
 });

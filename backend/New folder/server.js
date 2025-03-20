@@ -2,15 +2,14 @@ require('dotenv').config(); // Load environment variables
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/attendance_system';
 
-// More permissive CORS configuration
+// Secure CORS configuration
 app.use(cors({
-  origin: '*', // Allow all origins
+  origin: process.env.ALLOWED_ORIGIN || '*', // Use environment variable for security
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -25,15 +24,13 @@ app.use((req, res, next) => {
   next();
 });
 
-// Connect to MongoDB with more detailed error handling
+// Connect to MongoDB
 console.log('Attempting to connect to MongoDB at:', MONGO_URI);
-mongoose.connect(MONGO_URI)
-  .then(() => {
-    console.log('✅ Connected to MongoDB successfully');
-  })
+mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('✅ Connected to MongoDB successfully'))
   .catch(err => {
-    console.error('❌ MongoDB connection error:', err);
-    // Don't exit the process, let the server run anyway
+    console.error('❌ MongoDB connection error:', err.message);
+    process.exit(1); // Exit process if connection fails
   });
 
 // Define Attendance Schema
@@ -44,96 +41,139 @@ const attendanceSchema = new mongoose.Schema({
   timestamp: { type: Date, default: Date.now },
   status: { type: String, required: true, enum: ['Present', 'Absent'] },
   locationVerified: { type: Boolean, required: true }
-}, { 
-  timestamps: true // Add createdAt and updatedAt fields
-});
+}, { timestamps: true });
 
-// Create model if it doesn't exist already
-const Attendance = mongoose.models.Attendance || mongoose.model('Attendance', attendanceSchema);
+const Attendance = mongoose.model('Attendance', attendanceSchema);
+
+// Drop Unique Index if Exists (Handle Errors Gracefully)
+(async () => {
+  try {
+    await Attendance.collection.dropIndexes();
+    console.log("✅ Dropped unique indexes (if any)");
+  } catch (err) {
+    if (err.message.includes("ns not found")) {
+      console.log("⚠️ No indexes to drop (collection does not exist yet)");
+    } else {
+      console.error("⚠️ Error dropping indexes:", err.message);
+    }
+  }
+})();
 
 // Root route for checking server status
 app.get('/', (req, res) => {
-  res.send('Attendance API is running');
+  res.send('✅ Attendance API is running');
 });
 
-// API Route to Submit Attendance with better error handling
+// ✅ API Route to Submit Attendance
 app.post('/api/attendance', async (req, res) => {
   try {
-    console.log('Received attendance data:', req.body);
-    
-    // Check if the request body is empty
-    if (!req.body || Object.keys(req.body).length === 0) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Request body is empty"
-      });
-    }
-
     const { userId, date, time, status, locationVerified } = req.body;
-    
-    // More detailed validation
-    const validationErrors = [];
-    if (!userId) validationErrors.push("userId is required");
-    if (!date) validationErrors.push("date is required");
-    if (!time) validationErrors.push("time is required");
-    if (!status) validationErrors.push("status is required");
-    if (locationVerified === undefined) validationErrors.push("locationVerified is required");
-    
-    if (validationErrors.length > 0) {
+
+    if (!userId || !date || !time || !status) {
       return res.status(400).json({
         success: false,
-        message: "Validation failed",
-        errors: validationErrors
+        message: "❌ Missing required fields: userId, date, time, or status."
       });
     }
 
-    // Create and save the attendance record
-    const attendance = new Attendance({
-      userId,
-      date,
-      time,
-      status,
-      locationVerified,
-      timestamp: new Date()
-    });
+    // Check if attendance already exists for this user on this date
+    const existingRecord = await Attendance.findOne({ userId, date }).lean();
+    if (existingRecord) {
+      return res.status(400).json({
+        success: false,
+        message: "⚠️ Attendance already recorded for today."
+      });
+    }
 
+    const attendance = new Attendance({ userId, date, time, status, locationVerified });
     const savedAttendance = await attendance.save();
-    console.log('✅ Attendance saved successfully:', savedAttendance);
-    
+
     res.status(201).json({
       success: true,
-      message: 'Attendance recorded successfully',
+      message: "✅ Attendance recorded successfully",
       data: savedAttendance
     });
   } catch (error) {
-    console.error('❌ Error saving attendance:', error);
+    console.error("❌ Attendance Save Error:", error.message);
     res.status(500).json({
       success: false,
-      message: 'Failed to record attendance',
+      message: "❌ Failed to record attendance",
       error: error.message
     });
   }
 });
 
-// API Route to Get Attendance Records
+// ✅ API Route to Get Attendance Records
 app.get('/api/attendance', async (req, res) => {
   try {
-    const data = await Attendance.find().sort({ createdAt: -1 });
-    res.json({ success: true, count: data.length, data });
+    const data = await Attendance.find().sort({ createdAt: -1 }).lean();
+
+    if (!data.length) {
+      return res.status(404).json({ success: false, message: '⚠️ No attendance records found' });
+    }
+
+    res.status(200).json({ success: true, count: data.length, data });
   } catch (error) {
     console.error("❌ Error fetching attendance data:", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    res.status(500).json({ success: false, message: "❌ Internal Server Error" });
+  }
+});
+
+// ✅ API Route to Fetch Attendance by User ID
+app.get('/api/attendance/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const records = await Attendance.find({ userId }).sort({ createdAt: -1 }).lean();
+
+    if (!records.length) {
+      return res.status(404).json({ success: false, message: '⚠️ No attendance records found for this user' });
+    }
+
+    res.status(200).json({ success: true, count: records.length, data: records });
+  } catch (error) {
+    console.error("❌ Error fetching user attendance:", error);
+    res.status(500).json({ success: false, message: "❌ Internal Server Error" });
+  }
+});
+
+// ✅ API Route to Delete an Attendance Record
+app.delete('/api/attendance/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedRecord = await Attendance.findByIdAndDelete(id);
+
+    if (!deletedRecord) {
+      return res.status(404).json({ success: false, message: "❌ Record not found" });
+    }
+
+    res.status(200).json({ success: true, message: "✅ Attendance record deleted successfully" });
+  } catch (error) {
+    console.error("❌ Error deleting attendance record:", error);
+    res.status(500).json({ success: false, message: "❌ Internal Server Error" });
+  }
+});
+
+// ✅ API Route to Update an Attendance Record
+app.put('/api/attendance/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedRecord = await Attendance.findByIdAndUpdate(id, req.body, { new: true, runValidators: true });
+
+    if (!updatedRecord) {
+      return res.status(404).json({ success: false, message: "❌ Record not found" });
+    }
+
+    res.status(200).json({ success: true, message: "✅ Attendance record updated successfully", data: updatedRecord });
+  } catch (error) {
+    console.error("❌ Error updating attendance record:", error);
+    res.status(500).json({ success: false, message: "❌ Internal Server Error" });
   }
 });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
-  res.status(500).json({
-    success: false,
-    message: 'Internal Server Error',
-    error: err.message
-  });
+  console.error('❌ Unhandled error:', err);
+  res.status(500).json({ success: false, message: '❌ Internal Server Error', error: err.message });
 });
 
 // Start server
