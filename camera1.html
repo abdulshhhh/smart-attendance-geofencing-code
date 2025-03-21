@@ -183,6 +183,32 @@
             border-radius: 5px;
             display: inline-block;
         }
+        /* Altitude display styling */
+        .location-info {
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .info-item {
+            margin: 5px 15px;
+            display: flex;
+            align-items: center;
+        }
+        .info-icon {
+            margin-right: 8px;
+            font-size: 18px;
+        }
+        .info-value {
+            font-weight: bold;
+        }
     </style>
 </head>
 
@@ -220,8 +246,22 @@
         <button id="retryLocation" style="display: none;"><i class="fas fa-location-arrow"></i> Retry Location</button>
         <button id="submitAttendance" style="display: none;"><i class="fas fa-check-circle"></i> Submit Attendance</button>
         <button id="stopCamera" disabled><i class="fas fa-stop"></i> Stop Camera</button>
-        <p>Distance to Geofence: <span id="distance"></span> meters</p>
-
+    </div>
+    
+    <!-- New location info display with altitude -->
+    <div class="location-info">
+        <div class="info-item">
+            <div class="info-icon"><i class="fas fa-map-marker-alt"></i></div>
+            <div>Distance: <span id="distance" class="info-value">--</span></div>
+        </div>
+        <div class="info-item">
+            <div class="info-icon"><i class="fas fa-mountain"></i></div>
+            <div>Altitude: <span id="altitude" class="info-value">--</span></div>
+        </div>
+        <div class="info-item">
+            <div class="info-icon"><i class="fas fa-bullseye"></i></div>
+            <div>Accuracy: <span id="accuracy" class="info-value">--</span></div>
+        </div>
     </div>
     
     <div id="locationDetails"></div>
@@ -247,6 +287,9 @@
         const capturedImage = document.getElementById('capturedImage');
         const locationDetails = document.getElementById('locationDetails');
         const debugPanel = document.getElementById('debugPanel');
+        const distanceElement = document.getElementById('distance');
+        const altitudeElement = document.getElementById('altitude');
+        const accuracyElement = document.getElementById('accuracy');
         
         // Progress step elements
         const step1 = document.getElementById('step1');
@@ -268,6 +311,7 @@
         let imageCaptured = false;
         let studentId = "demo_student"; // In a real app, this would come from login
         let debugMode = false;
+        let studentAltitude = null;
 
         // Toggle debug panel
         function toggleDebug() {
@@ -288,6 +332,7 @@
                 mediumAccuracyThreshold: `${mediumAccuracyThreshold} meters`,
                 targetLocation: targetLocation,
                 studentLocation: studentLocation || 'Not detected yet',
+                studentAltitude: studentAltitude || 'Not detected yet',
                 locationAccuracy: locationAccuracy || 'Not measured yet',
                 locationVerified: locationVerified
             };
@@ -302,6 +347,61 @@
         function initApp() {
             updateProgressStep(1);
             statusText.textContent = "Please allow camera access to begin";
+            updateDebugInfo();
+            
+            // Start continuous location updates
+            startLocationUpdates();
+        }
+
+        // Start continuous location updates
+        function startLocationUpdates() {
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition(
+                    updateLocationDisplay,
+                    (error) => {
+                        distanceElement.textContent = "Error";
+                        altitudeElement.textContent = "Error";
+                        accuracyElement.textContent = "Error";
+                        console.error("Location error:", error);
+                    },
+                    { 
+                        enableHighAccuracy: true,
+                        timeout: 15000,
+                        maximumAge: 0
+                    }
+                );
+            }
+        }
+
+        // Update location display with new values
+        function updateLocationDisplay(position) {
+            const { latitude, longitude, accuracy, altitude, altitudeAccuracy } = position.coords;
+            
+            // Update distance
+            const distance = calculateDistance(
+                latitude, longitude,
+                targetLocation.lat, targetLocation.lon
+            ) * 1000; // Convert km to meters
+            
+            distanceElement.textContent = `${distance.toFixed(2)} m`;
+            
+            // Update altitude
+            if (altitude !== null) {
+                studentAltitude = altitude;
+                altitudeElement.textContent = `${altitude.toFixed(1)} m`;
+                
+                // Optional: Add altitude accuracy if available
+                if (altitudeAccuracy !== null) {
+                    altitudeElement.textContent += ` (±${altitudeAccuracy.toFixed(1)} m)`;
+                }
+            } else {
+                altitudeElement.textContent = "Not available";
+            }
+            
+            // Update accuracy
+            accuracyElement.textContent = `±${accuracy.toFixed(1)} m`;
+            
+            // Update debug info
             updateDebugInfo();
         }
 
@@ -398,12 +498,21 @@
             }
         }
 
-        // Process location data - simplified version
+        // Process location data - now with altitude
         function processLocation(position) {
-            const { latitude, longitude, accuracy } = position.coords;
+            const { latitude, longitude, accuracy, altitude } = position.coords;
             locationAccuracy = accuracy;
             locationTimestamp = position.timestamp;
             studentLocation = { lat: latitude, lon: longitude };
+            studentAltitude = altitude;
+            
+            // Display location data
+            locationDetails.style.display = "block";
+            locationDetails.innerHTML = `
+                <p><i class="fas fa-map-marker-alt"></i> Lat: ${latitude.toFixed(6)}, Lon: ${longitude.toFixed(6)}</p>
+                <p><i class="fas fa-mountain"></i> Altitude: ${altitude !== null ? altitude.toFixed(1) + ' meters' : 'Not available'}</p>
+                <p><i class="fas fa-bullseye"></i> Accuracy: ±${accuracy.toFixed(1)} meters</p>
+            `;
             
             // Update debug information
             updateDebugInfo();
@@ -519,89 +628,90 @@
             return deg * (Math.PI/180);
         }
 
-       // Frontend code - modified submitAttendance function
-// Frontend code - updated submitAttendance function
-// Frontend code - improved submitAttendance function with better error handling
-function submitAttendance() {
-  updateProgressStep(4);
-  statusText.textContent = "Submitting attendance...";
-  
-  const attendanceStatus = locationVerified ? "Present" : "Absent";
-  const timestamp = new Date().toISOString();
-  const date = new Date().toLocaleDateString('en-US');
-  const time = new Date().toLocaleTimeString('en-US', { hour12: false });
-  
-  // Get user ID from your authentication system
-  const userId = getUserId() || 'default_user'; // Fallback to prevent empty userId
-  
-  // Prepare data to send to backend
-  const attendanceData = {
-    userId,
-    date,
-    time,
-    timestamp,
-    status: attendanceStatus,
-    locationVerified
-  };
-  
-  console.log("Submitting attendance data:", attendanceData);
-  
-  // Test if the server is reachable first
-  fetch('http://localhost:5000/')
-    .then(response => {
-      if (!response.ok) {
-        throw new Error(`Server check failed with status: ${response.status}`);
-      }
-      console.log("Server is reachable, proceeding with attendance submission");
-      
-      // Now submit the attendance data
-      return fetch('http://localhost:5000/api/attendance', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(attendanceData),
-        // Add these options to help with CORS issues
-        mode: 'cors',
-        credentials: 'same-origin'
-      });
-    })
-    .then(response => {
-      console.log("Raw response:", response);
-      if (!response.ok) {
-        return response.text().then(text => {
-          throw new Error(`HTTP error! Status: ${response.status}, Body: ${text}`);
-        });
-      }
-      return response.json();
-    })
-    .then(data => {
-      console.log("Response from server:", data);
-      if (data.success) {
-        statusText.textContent = "Attendance submitted successfully!";
-        // Maybe show a success message or update UI
-      } else {
-        statusText.textContent = "Failed to submit attendance: " + (data.message || "Unknown error");
-        console.error('Error:', data.message);
-      }
-    })
-    .catch(error => {
-      statusText.textContent = "Error submitting attendance: " + error.message;
-      console.error('Fetch Error:', error);
-      // Display error in UI for debugging
-      const debugPanel = document.getElementById('debugPanel');
-      if (debugPanel) {
-        debugPanel.style.display = 'block';
-        debugPanel.innerHTML += `<div style="color:red;">Error: ${error.message}</div>`;
-      }
-    });
-}
+        // Frontend code - improved submitAttendance function with altitude data
+        function submitAttendance() {
+          updateProgressStep(4);
+          statusText.textContent = "Submitting attendance...";
+          
+          const attendanceStatus = locationVerified ? "Present" : "Absent";
+          const timestamp = new Date().toISOString();
+          const date = new Date().toLocaleDateString('en-US');
+          const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+          
+          // Get user ID from your authentication system
+          const userId = getUserId() || 'default_user'; // Fallback to prevent empty userId
+          
+          // Prepare data to send to backend, now including altitude data
+          const attendanceData = {
+            userId,
+            date,
+            time,
+            timestamp,
+            status: attendanceStatus,
+            locationVerified,
+            location: studentLocation,
+            altitude: studentAltitude,
+            accuracy: locationAccuracy
+          };
+          
+          console.log("Submitting attendance data:", attendanceData);
+          
+          // Test if the server is reachable first
+          fetch('http://localhost:5000/')
+            .then(response => {
+              if (!response.ok) {
+                throw new Error(`Server check failed with status: ${response.status}`);
+              }
+              console.log("Server is reachable, proceeding with attendance submission");
+              
+              // Now submit the attendance data
+              return fetch('http://localhost:5000/api/attendance', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(attendanceData),
+                // Add these options to help with CORS issues
+                mode: 'cors',
+                credentials: 'same-origin'
+              });
+            })
+            .then(response => {
+              console.log("Raw response:", response);
+              if (!response.ok) {
+                return response.text().then(text => {
+                  throw new Error(`HTTP error! Status: ${response.status}, Body: ${text}`);
+                });
+              }
+              return response.json();
+            })
+            .then(data => {
+              console.log("Response from server:", data);
+              if (data.success) {
+                statusText.textContent = "Attendance submitted successfully!";
+                // Maybe show a success message or update UI
+              } else {
+                statusText.textContent = "Failed to submit attendance: " + (data.message || "Unknown error");
+                console.error('Error:', data.message);
+              }
+            })
+            .catch(error => {
+              statusText.textContent = "Error submitting attendance: " + error.message;
+              console.error('Fetch Error:', error);
+              // Display error in UI for debugging
+              const debugPanel = document.getElementById('debugPanel');
+              if (debugPanel) {
+                debugPanel.style.display = 'block';
+                debugPanel.innerHTML += `<div style="color:red;">Error: ${error.message}</div>`;
+              }
+            });
+        }
 
-// Helper function to get user ID (implement based on your authentication system)
-function getUserId() {
-  // This is a placeholder - replace with your actual implementation
-  return localStorage.getItem('userId') || sessionStorage.getItem('userId') || 'Abdul';
-}
+        // Helper function to get user ID (implement based on your authentication system)
+        function getUserId() {
+          // This is a placeholder - replace with your actual implementation
+          return localStorage.getItem('userId') || sessionStorage.getItem('userId') || 'Abdul';
+        }
 
         // Event Listeners
         startCameraButton.addEventListener('click', startCamera);
@@ -612,40 +722,6 @@ function getUserId() {
 
         // Initialize app on load
         initApp();
-        const geoFenceLocation = { lat: 12.8689, lon: 80.0934 }; // Example geofenced location
-
-        function getDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371000; // Radius of Earth in meters
-            const φ1 = lat1 * Math.PI / 180;
-            const φ2 = lat2 * Math.PI / 180;
-            const Δφ = (lat2 - lat1) * Math.PI / 180;
-            const Δλ = (lon2 - lon1) * Math.PI / 180;
-
-            const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-                    Math.cos(φ1) * Math.cos(φ2) *
-                    Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-            return R * c; // Distance in meters
-        }
-
-        function updateDistance() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(position => {
-                    const userLat = position.coords.latitude;
-                    const userLon = position.coords.longitude;
-
-                    const distance = getDistance(userLat, userLon, geoFenceLocation.lat, geoFenceLocation.lon);
-                    document.getElementById("distance").textContent = distance.toFixed(2) + " m";
-                }, error => {
-                    document.getElementById("distance").textContent = "YOU ARE 20 KMs AWAY FROM THE GEOFENCED LOCATION ";
-                });
-            } else {
-                document.getElementById("distance").textContent = "Geolocation not supported.";
-            }
-        }
-
-        document.addEventListener("DOMContentLoaded", updateDistance);
     </script>
     
 </body>

@@ -9,7 +9,7 @@
     <style>
         body {
             font-family: sans-serif;
-            background-image: url('St.jpg'); /* Light gray background */
+            background-image: url('St.jpg');
             display: flex;
             justify-content: center;
             align-items: center;
@@ -22,7 +22,7 @@
             padding: 40px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 350px; /* Adjust width as needed */
+            width: 350px;
         }
 
         .logo {
@@ -31,13 +31,13 @@
         }
 
         .logo img {
-            max-width: 200px; /* Adjust logo size */
+            max-width: 200px;
         }
 
         .login-title {
             text-align: center;
             margin-bottom: 20px;
-            color: #333; /* Darker heading color */
+            color: #333;
         }
 
         .input-group {
@@ -47,10 +47,10 @@
         label {
             display: block;
             margin-bottom: 5px;
-            color: #777; /* Slightly lighter label color */
+            color: #777;
         }
 
-        input[type="text"],
+        input[type="email"],
         input[type="password"] {
             width: calc(100% - 12px);
             padding: 10px;
@@ -62,10 +62,21 @@
         button {
             width: 100%;
             padding: 10px;
-            background-color: #ffc107; /* Yellow button */
+            background-color: #ffc107;
             color: white;
             border: none;
             border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .google-btn {
+            width: 100%;
+            margin-top: 10px;
+            background-color: #db4437;
+            color: white;
+            border: none;
+            padding: 10px;
+            font-size: 16px;
             cursor: pointer;
         }
 
@@ -75,7 +86,7 @@
         }
 
         .forgot-password a {
-            color: #007bff; /* Blue link color */
+            color: #007bff;
             text-decoration: none;
             display: block;
             margin-top: 5px;
@@ -91,10 +102,10 @@
     
     <h2 class="login-title">STAFF LOGIN</h2>
 
-    <form action="adminnn.html" method="GET">
+    <form id="staffLoginForm">
         <div class="input-group">
-            <label for="pf_number">Staff mail id</label>
-            <input type="text" id="pf_number" name="pf_number" required>
+            <label for="email">Staff Email</label>
+            <input type="email" id="email" name="email" required>
         </div>
 
         <div class="input-group">
@@ -103,13 +114,62 @@
         </div>
 
         <button type="submit">Login</button>
-        
     </form>
+
+    <button class="google-btn" id="googleLogin">Sign in with Google</button>
 
     <div class="forgot-password">
         <a href="#">Forgot Password?</a>
     </div>
 </div>
+
+<!-- Firebase Authentication Script -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-auth.js";
+
+    // Firebase Config
+    const firebaseConfig = {
+        apiKey: "AIzaSyAq39lRnMNrVwAKTb4u6gzPHZWqnXHxrYQ",
+        authDomain: "user-data-33e24.firebaseapp.com",
+        projectId: "user-data-33e24",
+        storageBucket: "user-data-33e24.appspot.com",
+        messagingSenderId: "485056315169",
+        appId: "1:485056315169:web:2af3c0afcdabc072e1c860"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    // Staff Email/Password Login
+    document.getElementById("staffLoginForm").addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value.trim();
+
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            alert("Login successful! Redirecting...");
+            window.location.href = "adminnn.html";
+        } catch (error) {
+            alert("Error: " + error.message);
+        }
+    });
+
+    // Google Sign-In
+    document.getElementById("googleLogin").addEventListener("click", async function () {
+        try {
+            const result = await signInWithPopup(auth, provider);
+            alert("Google Login successful! Redirecting...");
+            window.location.href = "adminnn.html";
+        } catch (error) {
+            alert("Google Sign-In Error: " + error.message);
+        }
+    });
+</script>
 
 </body>
 </html>

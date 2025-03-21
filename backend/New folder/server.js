@@ -9,7 +9,7 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/attendance
 
 // Secure CORS configuration
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGIN || '*', // Use environment variable for security
+  origin: process.env.ALLOWED_ORIGIN || '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
