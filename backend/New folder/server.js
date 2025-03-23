@@ -33,14 +33,21 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
     process.exit(1); // Exit process if connection fails
   });
 
-// Define Attendance Schema
+// Enhanced Attendance Schema with location data
 const attendanceSchema = new mongoose.Schema({
   userId: { type: String, required: true },
   date: { type: String, required: true },
   time: { type: String, required: true },
   timestamp: { type: Date, default: Date.now },
   status: { type: String, required: true, enum: ['Present', 'Absent'] },
-  locationVerified: { type: Boolean, required: true }
+  locationVerified: { type: Boolean, required: true },
+  // New fields for location data
+  location: {
+    lat: { type: Number },
+    lon: { type: Number }
+  },
+  altitude: { type: Number },
+  accuracy: { type: Number }
 }, { timestamps: true });
 
 const Attendance = mongoose.model('Attendance', attendanceSchema);
@@ -64,10 +71,19 @@ app.get('/', (req, res) => {
   res.send('✅ Attendance API is running');
 });
 
-// ✅ API Route to Submit Attendance
+// ✅ Enhanced API Route to Submit Attendance with location data
 app.post('/api/attendance', async (req, res) => {
   try {
-    const { userId, date, time, status, locationVerified } = req.body;
+    const { 
+      userId, 
+      date, 
+      time, 
+      status, 
+      locationVerified, 
+      location, 
+      altitude, 
+      accuracy 
+    } = req.body;
 
     if (!userId || !date || !time || !status) {
       return res.status(400).json({
@@ -85,7 +101,18 @@ app.post('/api/attendance', async (req, res) => {
       });
     }
 
-    const attendance = new Attendance({ userId, date, time, status, locationVerified });
+    // Create attendance object with all fields
+    const attendance = new Attendance({ 
+      userId, 
+      date, 
+      time, 
+      status, 
+      locationVerified,
+      location,
+      altitude, 
+      accuracy
+    });
+    
     const savedAttendance = await attendance.save();
 
     res.status(201).json({
@@ -166,6 +193,30 @@ app.put('/api/attendance/:id', async (req, res) => {
     res.status(200).json({ success: true, message: "✅ Attendance record updated successfully", data: updatedRecord });
   } catch (error) {
     console.error("❌ Error updating attendance record:", error);
+    res.status(500).json({ success: false, message: "❌ Internal Server Error" });
+  }
+});
+
+// ✅ API Route to Get Attendance Statistics
+app.get('/api/stats', async (req, res) => {
+  try {
+    const totalRecords = await Attendance.countDocuments();
+    const presentCount = await Attendance.countDocuments({ status: 'Present' });
+    const absentCount = await Attendance.countDocuments({ status: 'Absent' });
+    const verifiedLocations = await Attendance.countDocuments({ locationVerified: true });
+    
+    res.status(200).json({
+      success: true,
+      stats: {
+        totalRecords,
+        presentCount,
+        absentCount,
+        verifiedLocations,
+        presentPercentage: totalRecords ? ((presentCount / totalRecords) * 100).toFixed(2) : 0
+      }
+    });
+  } catch (error) {
+    console.error("❌ Error fetching attendance statistics:", error);
     res.status(500).json({ success: false, message: "❌ Internal Server Error" });
   }
 });
