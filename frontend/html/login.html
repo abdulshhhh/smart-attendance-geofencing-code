@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REGEO</title>
+    <link rel="icon" href="sjce.png" type="image/x-icon">
+
+    <!-- Bootstrap CSS -->
+    <link href="frontend/https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        /* Combined styles from both files */
+        .navbar-brand {
+            font-family: 'Arial Black', sans-serif;
+            font-size: 1.8rem;
+            letter-spacing: 1px;
+        }
+        
+        .college-title {
+            color: white;
+            text-align: center;
+            font-size: 1rem;
+            font-weight: bold;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .switch-link {
+            text-align: center;
+            margin-top: 10px;
+        }
+        
+        .google-btn {
+            width: 100%;
+            margin-top: 10px;
+            background-color: #db4437;
+            color: white;
+            border: none;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        
+        /* Parallax effect from first file */
+        .parallax {
+            background-image: url('background.jpg');
+            height: 300px;
+            background-attachment: fixed;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+        
+        /* Login container styling */
+        ..login-container {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px;
+    background: url('transparent-bg.png') center/cover no-repeat, rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    margin-top: -50px;
+    position: relative;
+}
+
+        
+        .title {
+            font-family: 'Arial Black', sans-serif;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            margin-bottom: 25px;
+            color: #666;
+        }
+        
+        .input-3d {
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            transition: all 0.3s;
+        }
+        
+        .input-3d:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-3d {
+            width: 100%;
+            padding: 10px;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+        
+        .btn-3d:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Tab system for switching between register and login */
+        .nav-tabs {
+            border-bottom: none;
+            margin-bottom: 20px;
+        }
+        
+        .nav-tabs .nav-link {
+            border: none;
+            color: #666;
+            font-weight: bold;
+        }
+        
+        .nav-tabs .nav-link.active {
+            border: none;
+            border-bottom: 3px solid #0d6efd;
+            color: #0d6efd;
+            background-color: transparent;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">ℝ𝔼𝔾𝔼𝕆</a>
+            <span class="college-title">ST. JOSEPH'S COLLEGE OF ENGINEERING</span>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="html/about.html">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Contact</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="frontend/profile.jpg" alt="Profile" id="profilePic" class="rounded-circle" width="30" height="30">
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+                            <li>
+                                <input type="file" id="uploadPicInput" style="display: none;" accept="image/*">
+                                <a class="dropdown-item" href="#" id="uploadPicBtn">Add Profile Picture</a>
+                            </li>
+                            <li><a class="dropdown-item" href="html/file:///C:/Users/syeda/project/myprofile.html">View Profile</a></li>
+
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Parallax Background -->
+    <div class="parallax"></div>
+
+    <!-- Login/Register Form Container -->
+    <div class="container">
+        <div class="login-container">
+            <h1 class="text-center title">REGEO</h1>
+            <h6 class="text-center subtitle">St. Joseph's College of Engineering</h6>
+            
+            <!-- Tab navigation -->
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab" aria-controls="login" aria-selected="true">Login</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" type="button" role="tab" aria-controls="register" aria-selected="false">Register</button>
+                </li>
+            </ul>
+            
+            <!-- Tab content -->
+            <div class="tab-content" id="myTabContent">
+                <!-- Login Form -->
+                <div class="tab-pane fade show active" id="login" role="tabpanel" aria-labelledby="login-tab">
+                    <form id="authForm">
+                        <div class="form-floating mb-3">
+                            <input type="email" id="authEmail" name="email" class="form-control input-3d" placeholder="Email ID" required>
+                            <label for="authEmail">Email ID</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="password" id="password" name="password" class="form-control input-3d" placeholder="Password" required>
+                            <label for="password">Password</label>
+                        </div>
+                        <div class="form-floating mb-3" id="nameField" style="display: none;">
+                            <input type="text" id="authName" name="name" class="form-control input-3d" placeholder="Full Name">
+                            <label for="authName">Full Name</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-3d" id="submitBtn">Login</button>
+                    </form>
+                    
+                    <button class="google-btn" id="googleLogin">Sign in with Google</button>
+                    
+                    <p class="switch-link"><a href="#" id="switchForm">Don't have an account? Sign up</a></p>
+                </div>
+                
+                <!-- Register Form -->
+                <div class="tab-pane fade" id="register" role="tabpanel" aria-labelledby="register-tab">
+                    <form id="registerForm">
+                        <div class="form-floating mb-3">
+                            <input type="text" id="name" name="name" class="form-control input-3d" placeholder="Full Name" required>
+                            <label for="name">Full Name</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="text" id="number" name="number" class="form-control input-3d" placeholder="Roll Number" required>
+                            <label for="number">Roll Number</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="text" id="dept" name="dept" class="form-control input-3d" placeholder="Dept & Sec" required>
+                            <label for="dept">Dept & Sec</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="email" id="email" name="email" class="form-control input-3d" placeholder="Email ID" required>
+                            <label for="email">Email ID</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <input type="tel" id="phone" name="phone" class="form-control input-3d" placeholder="Phone Number" required>
+                            <label for="phone">Phone Number</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-3d">Register</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- File Input for Profile Picture -->
+    <input type="file" id="profileInput" accept="image/*" style="display: none;">
+
+    <!-- Firebase Scripts -->
+    <script type="module">
+        // Import Firebase SDK for both implementations
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+        // Config for Registration System
+        const registrationConfig = {
+            apiKey: "AIzaSyCLZpndyGWe42cZK-eM3ZxsblS-6E75XQI",
+            authDomain: "logi-67986.firebaseapp.com",
+            projectId: "logi-67986",
+            storageBucket: "logi-67986.firebasestorage.app",
+            messagingSenderId: "127110029452",
+            appId: "1:127110029452:web:57a2d17ae0e890ea951ba9",
+            measurementId: "G-7KM68DX14P"
+        };
+
+        // Config for Authentication System
+        const authConfig = {
+            apiKey: "AIzaSyAq39lRnMNrVwAKTb4u6gzPHZWqnXHxrYQ",
+            authDomain: "user-data-33e24.firebaseapp.com",
+            projectId: "user-data-33e24",
+            storageBucket: "user-data-33e24.appspot.com",
+            messagingSenderId: "485056315169",
+            appId: "1:485056315169:web:2af3c0afcdabc072e1c860"
+        };
+
+        // Initialize Firebase apps
+        const registrationApp = initializeApp(registrationConfig, "registration");
+        const registrationDb = getFirestore(registrationApp);
+        const registrationAnalytics = getAnalytics(registrationApp);
+
+        const authApp = initializeApp(authConfig, "authentication");
+        const auth = getAuth(authApp);
+        const authDb = getFirestore(authApp);
+        const provider = new GoogleAuthProvider();
+
+        // Registration Form Handler
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const dept = document.getElementById('dept').value;
+            const number = document.getElementById('number').value;
+            
+            try {
+                await addDoc(collection(registrationDb, 'staff-details'), { 
+                    name, 
+                    email, 
+                    phone, 
+                    dept, 
+                    roll_number: number 
+                });
+                alert('Registration data has been saved successfully!');
+                document.getElementById('registerForm').reset();
+                window.location.href = 'otp.html';
+            } catch (error) {
+                console.error('Error adding document: ', error);
+                alert('Error saving registration data: ' + error);
+            }
+        });
+
+        // Authentication system from second file
+        let isLogin = true;
+
+        document.getElementById("switchForm").addEventListener("click", function () {
+            isLogin = !isLogin;
+            document.getElementById("submitBtn").textContent = isLogin ? "Login" : "Sign Up";
+            document.getElementById("nameField").style.display = isLogin ? "none" : "block";
+            document.getElementById("switchForm").textContent = isLogin ? "Don't have an account? Sign up" : "Already have an account? Login";
+        });
+
+        document.getElementById("authForm").addEventListener("submit", async function (event) {
+            event.preventDefault();
+            
+            const email = document.getElementById("authEmail")?.value.trim() || "";
+            const password = document.getElementById("password")?.value.trim() || "";
+            const name = document.getElementById("authName")?.value.trim() || "";
+
+            try {
+                if (isLogin) {
+                    // Login
+                    await signInWithEmailAndPassword(auth, email, password);
+                    alert("Login successful! Redirecting...");
+                    window.location.href = "markin.html";
+                } else {
+                    // Sign Up
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    await setDoc(doc(authDb, "students", userCredential.user.uid), { email, name });
+                    alert("Sign-up successful! Please log in.");
+                    document.getElementById("switchForm").click();
+                }
+            } catch (error) {
+                alert("Authentication Error: " + error.message);
+            }
+        });
+
+        // Google Sign-In
+        document.getElementById("googleLogin").addEventListener("click", async function () {
+            try {
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                
+                // Store user details in Firestore if first-time login
+                const userRef = doc(authDb, "students", user.uid);
+                await setDoc(userRef, { email: user.email, name: user.displayName }, { merge: true });
+
+                alert("Google Login successful! Redirecting...");
+                window.location.href = "markin.html";
+            } catch (error) {
+                alert("Google Sign-In Error: " + error.message);
+            }
+        });
+
+        // Profile Picture Functionality
+        // Make Add Profile Picture button open file picker
+        document.getElementById('uploadPicBtn').addEventListener('click', function() {
+            document.getElementById('uploadPicInput').click();
+        });
+    
+        // Handle file selection
+        document.getElementById('uploadPicInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const imageDataUrl = event.target.result;
+                    localStorage.setItem('profilePic', imageDataUrl); // Save image in localStorage
+                    document.getElementById('profilePic').src = imageDataUrl; // Update profile picture
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Load saved profile picture from localStorage
+        window.addEventListener('load', function () {
+            const savedPic = localStorage.getItem('profilePic');
+            if (savedPic) {
+                document.getElementById('profilePic').src = savedPic;
+            }
+        });
+
+        // Tab switching functionality
+        const loginTab = document.getElementById('login-tab');
+        const registerTab = document.getElementById('register-tab');
+        
+        loginTab.addEventListener('click', function() {
+            loginTab.classList.add('active');
+            registerTab.classList.remove('active');
+            document.getElementById('login').classList.add('show', 'active');
+            document.getElementById('register').classList.remove('show', 'active');
+        });
+        
+        registerTab.addEventListener('click', function() {
+            registerTab.classList.add('active');
+            loginTab.classList.remove('active');
+            document.getElementById('register').classList.add('show', 'active');
+            document.getElementById('login').classList.remove('show', 'active');
+        });
+    </script>
+
+    <!-- Bootstrap JS -->
+    <script src="frontend/https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
+

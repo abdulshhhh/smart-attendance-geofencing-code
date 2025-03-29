@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced To-Do List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #007bff;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        input, select, button {
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 100%;
+            font-size: 16px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s ease-in-out;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .task-item {
+            background: #f9f9f9;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .task-item.completed {
+            background: #e0f7fa;
+            border-color: #007bff;
+        }
+        .task-item .high-priority { color: red; }
+        .task-item .medium-priority { color: orange; }
+        .task-item .low-priority { color: green; }
+        .task-title {
+            font-weight: bold;
+        }
+        .subtask-list {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        .subtask-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 5px 0;
+        }
+        .completed-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #007bff;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Enhanced To-Do List</h1>
+    <div class="container">
+        <input type="text" id="taskInput" placeholder="Add a new task">
+        <input type="date" id="dueDate">
+        <select id="priority">
+            <option value="Low">Low Priority</option>
+            <option value="Medium">Medium Priority</option>
+            <option value="High">High Priority</option>
+        </select>
+        <button id="addTask">Add Task</button>
+
+        <div class="task-list" id="taskList"></div>
+
+        <div class="completed-section">
+            <h2>Completed Tasks</h2>
+            <div id="completedTasks"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+            let completedTasks = JSON.parse(localStorage.getItem("completedTasks")) || [];
+
+            function renderTasks() {
+                document.getElementById("taskList").innerHTML = "";
+                document.getElementById("completedTasks").innerHTML = "";
+
+                tasks.forEach((task, index) => {
+                    const taskItem = document.createElement("div");
+                    taskItem.classList.add("task-item");
+
+                    let priorityClass = task.priority.toLowerCase() + "-priority";
+
+                    taskItem.innerHTML = `
+                        <div>
+                            <div class="task-title ${priorityClass}">${task.title}</div>
+                            <div class="task-details">Due: ${task.dueDate} | Priority: ${task.priority}</div>
+                            <div class="subtask-list" id="subtasks-${index}"></div>
+                            <input type="text" id="subtaskInput-${index}" placeholder="Add a subtask">
+                            <button onclick="addSubtask(${index})">Add Subtask</button>
+                        </div>
+                        <div>
+                            <button onclick="completeTask(${index})">Complete</button>
+                            <button onclick="deleteTask(${index})">Delete</button>
+                        </div>
+                    `;
+
+                    document.getElementById("taskList").appendChild(taskItem);
+
+                    let subtaskList = document.getElementById(`subtasks-${index}`);
+                    task.subtasks.forEach((subtask, subIndex) => {
+                        const subtaskItem = document.createElement("div");
+                        subtaskItem.classList.add("subtask-item");
+                        subtaskItem.innerHTML = `
+                            <input type="checkbox" id="subtask-${index}-${subIndex}" ${subtask.completed ? "checked" : ""} 
+                            onchange="toggleSubtask(${index}, ${subIndex})">
+                            <label for="subtask-${index}-${subIndex}">${subtask.text}</label>
+                        `;
+                        subtaskList.appendChild(subtaskItem);
+                    });
+                });
+
+                completedTasks.forEach((task, index) => {
+                    const taskItem = document.createElement("div");
+                    taskItem.classList.add("task-item", "completed");
+                    taskItem.innerHTML = `
+                        <div>
+                            <div class="task-title">${task.title}</div>
+                            <div class="task-details">Due: ${task.dueDate} | Priority: ${task.priority}</div>
+                        </div>
+                        <button onclick="deleteCompletedTask(${index})">Delete</button>
+                    `;
+                    document.getElementById("completedTasks").appendChild(taskItem);
+                });
+            }
+
+            document.getElementById("addTask").addEventListener("click", function () {
+                let taskInput = document.getElementById("taskInput");
+                let dueDate = document.getElementById("dueDate").value || "No due date";
+                let priority = document.getElementById("priority").value;
+
+                if (!taskInput.value.trim()) {
+                    alert("Enter a valid task!");
+                    return;
+                }
+
+                tasks.push({ title: taskInput.value, dueDate, priority, subtasks: [] });
+                localStorage.setItem("tasks", JSON.stringify(tasks));
+                taskInput.value = "";
+                renderTasks();
+            });
+
+            window.addSubtask = function (index) {
+                let subtaskInput = document.getElementById(`subtaskInput-${index}`);
+                if (!subtaskInput.value.trim()) return;
+                tasks[index].subtasks.push({ text: subtaskInput.value, completed: false });
+                localStorage.setItem("tasks", JSON.stringify(tasks));
+                renderTasks();
+            };
+
+            window.completeTask = function (index) {
+                completedTasks.push(tasks.splice(index, 1)[0]);
+                localStorage.setItem("tasks", JSON.stringify(tasks));
+                localStorage.setItem("completedTasks", JSON.stringify(completedTasks));
+                renderTasks();
+            };
+
+            window.deleteTask = function (index) { tasks.splice(index, 1); renderTasks(); };
+            window.deleteCompletedTask = function (index) { completedTasks.splice(index, 1); renderTasks(); };
+
+            renderTasks();
+        });
+    </script>
+</body>
+</html>
+
